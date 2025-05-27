@@ -55,11 +55,14 @@ pip install git+https://github.com/vandeplaslab/lorabel.git
 ## Quick Start
 
 ```python
-import numpy as np
+from astropy.io import fits
 from lorabel import LORABEL
 
 # Load your chop-only time series: a 3D array (frames × height × width)
-data = np.load('chop_series.npy')
+hdul = fits.open('chop_series.fits')
+data = hdul[0].data  # shape (frames, height, width)
+hdul.close()
+data = data.reshape(data.shape[0], -1)
 
 # Initialize the model (θ and δ can be auto-estimated)
 model = LORABEL(data)
