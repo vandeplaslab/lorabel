@@ -15,3 +15,7 @@ dependencies = [
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+unipy = { git = "https://github.com/vandeplaslab/unipy.git", rev = "main" }
