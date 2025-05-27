@@ -33,7 +33,7 @@ LORABEL implements LOw-RAnk Background ELimination, a novel computational method
   minimize ‖B‖_* + θ‖C‖₁
   s.t. ‖A - B - C‖_F ≤ δ
   ```
-* **No Chopping/Nodding Required**: works on chop-only data, reducing operational overhead
+* **No Nodding Required**: works on chop-only data, reducing operational overhead
 * **Flexible**: demonstrated on ground-based VISIR and airborne SOFIA/FORCAST datasets
 
 ## Installation

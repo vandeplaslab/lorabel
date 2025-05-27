@@ -285,7 +285,7 @@ class LORABEL:
 
         return None
     
-    def run(self, a: ty.Array) -> None:
+    def decompose(self, a: ty.Array) -> None:
         """Run algorithm
 
         Parameters
