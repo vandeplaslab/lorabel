@@ -1,7 +1,11 @@
 import math
 from typing import NoReturn, Union
 
-from ..math import *
+# core utilities (zeros, absolute, etc.)
+from unipy import *  
+
+# SVD, norms, etc.
+import unipy.linalg as linalg
 
 
 class CRITERIA:

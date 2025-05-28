@@ -5,8 +5,12 @@ from typing import List, NoReturn, Union
 
 from . import types as ty
 from .criteria import CRITERIA
-from unipy.math import *
-from unipy.math import linalg
+
+# grab all core routines (zeros, absolute, matmul, multiply…)  
+from unipy import *  
+
+# and pull in linear‐algebra routines  
+import unipy.linalg as linalg
 
 
 class LORABEL:
