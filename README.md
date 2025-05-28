@@ -129,9 +129,9 @@ Refer to [Fig. 6–9](https://github.com/vandeplaslab/lorabel#results) for full
 
 ## Citation
 
-If you use LORABEL in your research, please cite:
+If you use LORABEL in your research, please cite (submitted to A&A, not accepted):
 
-> R.A.R. Moens, A.G.M. Pietrow, B. Brandl, & R. Van de Plas (2025), “Thermal Background Reduction for Mid-Infrared Imaging by Low-Rank Background and Sparse Point Source Modelling,” *Astronomy & Astrophysics*, DOI: xx.xxxx/XXXX
+> R.A.R. Moens, A.G.M. Pietrow, B. Brandl, & R. Van de Plas (2025), “Thermal Background Reduction for Mid-Infrared Imaging by Low-Rank Background and Sparse Point Source Modelling,” * *, DOI: xx.xxxx/XXXX
 
 ---
 
