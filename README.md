@@ -15,10 +15,9 @@ LORABEL implements LOw-RAnk Background ELimination, a novel computational method
 3. [Quick Start](#quick-start)
 4. [Algorithm Overview](#algorithm-overview)
 5. [Parameters & Tuning](#parameters--tuning)
-6. [Examples](#examples)
-7. [Citation](#citation)
-8. [License](#license)
-9. [Authors & Acknowledgements](#authors--acknowledgements)
+6. [Citation](#citation)
+7. [License](#license)
+8. [Authors & Acknowledgements](#authors--acknowledgements)
 
 ---
 
@@ -98,16 +97,6 @@ Supply custom values:
 ```python
 model = LORABEL(data, theta=1.1/np.sqrt(max(m, n)), delta=0.7*np.linalg.norm(A, 'fro'))
 ```
-
----
-
-## Examples
-
-See the [examples/](https://github.com/vandeplaslab/lorabel/tree/main/examples) folder for:
-
-* Synthetic VISIR data with injected sources
-* Real SOFIA/FORCAST observations
-* Jupyter notebooks demonstrating detection, photometry, and parameter sweeps
 
 ---
 
