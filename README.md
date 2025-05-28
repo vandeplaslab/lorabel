@@ -16,10 +16,9 @@ LORABEL implements LOw-RAnk Background ELimination, a novel computational method
 4. [Algorithm Overview](#algorithm-overview)
 5. [Parameters & Tuning](#parameters--tuning)
 6. [Examples](#examples)
-7. [Performance & Benchmarks](#performance--benchmarks)
-8. [Citation](#citation)
-9. [License](#license)
-10. [Authors & Acknowledgements](#authors--acknowledgements)
+7. [Citation](#citation)
+8. [License](#license)
+9. [Authors & Acknowledgements](#authors--acknowledgements)
 
 ---
 
