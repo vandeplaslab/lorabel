@@ -4,7 +4,6 @@ import math
 from typing import List, NoReturn, Union
 
 from . import types as ty
-from .criteria import CRITERIA
 
 # grab all core routines (zeros, absolute, matmul, multiply…)  
 from unipy import *  
@@ -68,39 +67,24 @@ class LORABEL:
     
     def __init__(
         self,
-        criteria_list: Union[list, None] = None,
-        condition: str = "all",
         maxiter=50,
         stdev=1,
         dirac=None,
         sv_factor=0.05,
         lambda_factor=1,
         lambda_opt=None,
-        sparse_s=False,
+        stopping=1e-3,
         verbose=True,
-        sparsity: float = 0.1,
         **kwargs,
     ) -> NoReturn:
-        criteria_list = (
-            criteria_list
-            if isinstance(criteria_list, list) is True
-            else [
-                [
-                    "math.sqrt(linalg.norm($b$-$b_old$, 'fro')**2+linalg.norm($c$-$c_hat$, 'fro')**2)/(math.sqrt(linalg.norm($b_old_sv$, 2)**2+linalg.norm($c_hat$, 'fro')**2)+1)",
-                    "<",
-                    "1e-3",
-                ]
-            ]
-        )
-        self.criteria = CRITERIA(criteria_list, condition)
         self.maxiter = maxiter
         self.sv_factor = sv_factor
         self.stdev = stdev
         self.dirac = dirac
         self.lambda_factor = lambda_factor
         self.lambda_opt = lambda_opt
+        self.stopping = stopping
         self.verbose = verbose
-        self.sparsity = sparsity
         self.kwargs = kwargs
 
         pass
@@ -223,9 +207,7 @@ class LORABEL:
             Threshold value
 
         """
-        self.c = sparsify(
-            sign(self.a) * maximum(absolute(self.a) - c, 0), self.sparsity
-        )  # not ideal
+        self.c = sign(self.a) * maximum(absolute(self.a) - c, 0)
         self._z = self.theta / (self.theta + self.mu) * (self.a - self.c)
         self._y = -self.mu * self._z
 
@@ -244,11 +226,7 @@ class LORABEL:
         self.datatype = a.dtype
         self._m, self._n = self.a.shape
         # Initialize variables
-        self.atype = (
-            "scipy.sparse"
-            if find_package(self.a)[1] == "numpy"
-            else "cupyx.scipy.sparse"
-        )
+        self.atype = find_package(self.a)[1]
         self.c = zeros((self._m, self._n), atype=self.atype, dtype=a.dtype)
         self.c_hat = zeros((self._m, self._n), atype=self.atype, dtype=a.dtype)
         self._initialize_b()
@@ -288,8 +266,24 @@ class LORABEL:
         self._tic = 0  # Initialize counter
 
         return None
+
+    def _check_convergence(self) -> bool:
+        """
+        Default convergence: ||B - B_old||_F and ||C - C_hat||_F small relative to previous singular values.
+        """
+        # numerator: sqrt(||b - b_old||_F^2 + ||c - c_hat||_F^2)
+        num = math.sqrt(
+            linalg.norm(self.b - self.b_old, 'fro')**2
+            + linalg.norm(self.c - self.c_hat, 'fro')**2
+        )
+        # denominator: sqrt(||b_old_sv||_2^2 + ||c_hat||_F^2) + 1
+        den = math.sqrt(
+            sum(self._b_old[1]**2) + linalg.norm(self.c_hat, 'fro')**2
+        ) + 1
+        self.crit_num = (num / den)
+        return self.crit_num < self.stopping
     
-    def decompose(self, a: ty.Array) -> None:
+    def decompose(self, a: ty.Array) -> tuple[ty.Array]:
         """Run algorithm
 
         Parameters
@@ -300,8 +294,8 @@ class LORABEL:
         """
         self._initialize(a)  # set other variables
         self._tic = time.time()  # Start timer
-        self.check = self.criteria.check(self._x)
-        while (self.check is False) and (self._k < self.maxiter):
+
+        while True:
             self._update_b()  # Update L
             self._update_sv()  # Update sv
             self._theta_search(
@@ -310,20 +304,7 @@ class LORABEL:
             self._update_c_hat()  # Update c_hat
             self._update_c()  # Update c
             self._update_z()  # Update z
-            self._x = {
-                "a": self.a,
-                "b": self.b,
-                "b_old": self.b_old,
-                "b_old_sv": self._b_old[1],
-                "c": self.c,
-                "c_hat": self.c_hat,
-                "y": self._y,
-                "a_2": self._a_norm_2,
-                "mu": self.mu,
-                "k": self._k,
-                "svp": self._svp,
-            }  # Dictionary with references for criteria
-            self.check = self.criteria.check(self._x)
+            self.check = self._check_convergence()
             self._update_y()  # Update Y
             self._update_mu()  # Update mu
             self._update_b_old()  # Update b_old
@@ -331,10 +312,13 @@ class LORABEL:
             self._update_k()  # Update k
             if self.verbose:  # Print option
                 self._print_out()
+                
+            if self.check or self._k >= self.maxiter:
+                break
 
         self._tic = time.time() - self._tic  # Finish timer
 
-        return None
+        return self.b, self.c, self.d
     
     def _update_y(self):
         """Update Y"""
@@ -349,11 +333,7 @@ class LORABEL:
             if self.theta == 0
             else self.lambda_opt * (self.mu + self.theta) / (self.mu * self.theta)
         )
-        self.c = sparsify(
-            sign(self.a - self.b - (1 / self.mu) * self._y)
-            * maximum(absolute(self.a - self.b - (1 / self.mu) * self._y) - c, 0),
-            self.sparsity,
-        )
+        self.c = sign(self.a - self.b - (1 / self.mu) * self._y) * maximum(absolute(self.a - self.b - (1 / self.mu) * self._y) - c, 0)
 
         return None
     
@@ -428,7 +408,7 @@ class LORABEL:
     
     def _print_out(self) -> None:
         """Output iteration steps during optimization"""
-        text = "#{} - Rank = {}% ({}) - Card = {}% ({}) - sv = {} - time = {}s".format(
+        text = "#{} - Rank = {}% ({}) - Card = {}% ({}) - sv = {} - time = {}s - crit = {}".format(
             self._k,
             round(100 * self.b_rank[-1] / min(self._m, self._n), 1),
             self.b_rank[-1],
@@ -436,12 +416,8 @@ class LORABEL:
             self.c_card[-1],
             self.kwargs['sv'],
             int(time.time() - self._tic),
-        ) + "".join(
-            [
-                " - crit" + str(i) + " = " + str(self.criteria.state[i][0])
-                for i in range(len(self.criteria.state))
-            ]
-        )
+            self.crit_num,
+        ) 
         print(text)
 
         return None
