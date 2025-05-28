@@ -2,7 +2,7 @@
 
 **Thermal Background Reduction for Mid-Infrared Imaging by Low-Rank Background and Sparse Point Source Modelling**
 
-![PyPI Version](https://img.shields.io/pypi/v/lorabel) ![License](https://img.shields.io/badge/license-BSD%203--Clause-blue)
+![License](https://img.shields.io/badge/license-BSD%203--Clause-blue)
 
 LORABEL implements LOw-RAnk Background ELimination, a novel computational method to improve sensitivity in mid-infrared astronomical imaging by modelling and removing varying thermal background noise without classical chopping or nodding.
 
@@ -38,13 +38,7 @@ LORABEL implements LOw-RAnk Background ELimination, a novel computational method
 
 ## Installation
 
-Install the latest release from PyPI:
-
-```bash
-pip install lorabel
-```
-
-Or install directly from GitHub:
+Install directly from GitHub:
 
 ```bash
 pip install git+https://github.com/vandeplaslab/lorabel.git
@@ -58,13 +52,13 @@ pip install git+https://github.com/vandeplaslab/lorabel.git
 from astropy.io import fits
 from lorabel import LORABEL
 
-# Load your chop-only time series: a 3D array (frames × height × width)
+# Load your chop subtraction time series: a 3D array (height × width x frames) and reshape to 2D array (pixels x frames)
 hdul = fits.open('chop_series.fits')
-data = hdul[0].data  # shape (frames, height, width)
+data = hdul[0].data  # shape (height, width, frames)
 hdul.close()
 data = data.reshape(data.shape[0], -1)
 
-# Initialize the model (θ and δ can be auto-estimated)
+# Initialize the model (θ and δ can be adjusted)
 model = LORABEL(data)
 
 # Decompose into low-rank background, sparse sources, and residual noise
@@ -79,7 +73,7 @@ time_avg = sources.mean(axis=0)
 
 ## Algorithm Overview
 
-1. **Vectorize Frames**: build matrix $A\in\mathbb{R}^{mn	imes t}$ with each column as a vectorized chop subtraction frame.
+1. **Vectorize Frames**: build matrix $A\in\mathbb{R}^{mn \times t}$ with each column as a vectorized chop subtraction frame.
 2. **Model**: $A = B + C + D$ where:
 
    * $B$ is low-rank (background)
@@ -100,7 +94,7 @@ time_avg = sources.mean(axis=0)
 * **θ (theta)**: trade-off between sparsity and background rank. Default ≈ 1/√max(m,n).
 * **δ (delta)**: noise tolerance, often estimated as √(mn)·σ (σ = noise σ).
 
-Use `model.auto_tune()` or supply custom values:
+Supply custom values:
 
 ```python
 model = LORABEL(data, theta=1.1/np.sqrt(max(m, n)), delta=0.7*np.linalg.norm(A, 'fro'))
@@ -118,18 +112,9 @@ See the [examples/](https://github.com/vandeplaslab/lorabel/tree/main/examples) 
 
 ---
 
-## Performance & Benchmarks
-
-* **VISIR (SNR < 5)**: up to 5× reduction in photometric error variability vs. chop-nod methods.
-* **SOFIA (mid-IR)**: 20–100× decrease in mean background flux while preserving source flux.
-
-Refer to [Fig. 6–9](https://github.com/vandeplaslab/lorabel#results) for full quantitative benchmarks.
-
----
-
 ## Citation
 
-If you use LORABEL in your research, please cite (submitted to A&A, not accepted):
+If you use LORABEL in your research, please cite (submitted to A&A):
 
 > R.A.R. Moens, A.G.M. Pietrow, B. Brandl, & R. Van de Plas (2025), “Thermal Background Reduction for Mid-Infrared Imaging by Low-Rank Background and Sparse Point Source Modelling,” * *, DOI: xx.xxxx/XXXX
 
