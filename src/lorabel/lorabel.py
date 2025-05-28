@@ -92,7 +92,7 @@ class LORABEL:
                 ]
             ]
         )
-        self.criteria = criteria(criteria_list, condition)
+        self.criteria = CRITERIA(criteria_list, condition)
         self.maxiter = maxiter
         self.sv_factor = sv_factor
         self.stdev = stdev

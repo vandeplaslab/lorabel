@@ -58,10 +58,10 @@ hdul.close()
 data = data.reshape(data.shape[0], -1)
 
 # Initialize the model (θ and δ can be adjusted)
-model = LORABEL(data)
+model = LORABEL()
 
 # Decompose into low-rank background, sparse sources, and residual noise
-background, sources, residual = model.decompose()
+background, sources, residual = model.decompose(data)
 
 # Aggregate the sparse component to detect and photometer point sources
 time_avg = sources.mean(axis=0)
